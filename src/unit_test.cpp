@@ -18,14 +18,14 @@ Matrix<Dtype> get_batch_datas(int train_batch_num,int feature_num,Dtype threshol
 template<typename Dtype>
 int test_model(){
 
-	int train_time = 2000;
-	int feature_num = 3;
+	int train_time = 5000;
+	int feature_num = 10;
 
 
 	int train_batch_num = 500;
 	int test_batch_num = 100;
 	
-	int echo_num = 20;
+	int echo_num = train_time/100 + 1;
 
 	Matrix<Dtype> target_weights(1,feature_num);
 
