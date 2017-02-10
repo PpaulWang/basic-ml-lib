@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
-using namespace std;
+#include <vector>
+#include <fstream>
 
 namespace wcq{
 	int memory_blocks_num=0;	
@@ -46,6 +47,38 @@ public:
 		//(*this).data_ptr = (Dtype*)malloc(memsize_);
 		memcpy(data_ptr, source.data_ptr, memsize_);
 		memory_blocks_num++;
+	}
+
+	Matrix(const std::string filename){
+		(*this).data_ptr = NULL ;
+		(*this).load(filename);
+	}
+	void load(const std::string filename){
+		std::ifstream fin(filename.c_str());
+		fin>>(*this).row>>(*this).column;
+		if ((*this).data_ptr != NULL) {
+			delete[] data_ptr;
+			memory_blocks_num -- ;
+		}
+		data_ptr = new Dtype[(*this).row * (*this).column];
+		memory_blocks_num ++ ;
+		for(int i = 0 ; i < (*this).row ; i++ ){
+			for(int j = 0 ; j < (*this).column ; j++ ){
+				fin>>(*this)[i][j];
+			}
+		}
+	}
+
+
+	void save(const std::string filename) const {
+		std::ofstream fout(filename.c_str());
+		fout<<(*this).row << " " << (*this).column << std::endl;
+		for(int i = 0 ; i < (*this).row ; i++ ){
+			for(int j = 0 ; j < (*this).column ; j++ ){
+				fout << (*this)[i][j] << " ";
+			}
+			fout << std::endl;
+		}
 	}
 
 	void operator = (const Matrix& source){
@@ -246,6 +279,29 @@ public:
 		return data_ptr[offset(row_,column_)];
 	}
 
+	Matrix get_sub_in_rows(std::vector<int> indexs){
+		Matrix ret(indexs.size() , (*this).column );
+		for(int i = 0 ;i < indexs.size() ; ++ i ){
+			memcpy(ret[i],(*this)[indexs[i]],sizeof(Dtype)*(*this).column);
+		}
+		return ret;
+	}
+
+	Matrix get_sub_in_columns(std::vector<int> indexs){
+		return (*this).T().get_sub_in_rows(indexs).T();
+	}
+
+	Matrix append(Matrix<Dtype> appdata){
+		Matrix ret((*this).row+appdata.row , (*this).column );
+		if((*this).column != appdata.column){
+			//log_error();
+			return ret;
+		}
+		memcpy(ret[0],(*this)[0],sizeof(Dtype)*(*this).row*(*this).column);
+		memcpy(ret[(*this).row],appdata[0],sizeof(Dtype)*appdata.row*appdata.column);
+		return ret;
+	}
+
 	bool valid(int row_,int column_) const {
 		if(row_ < 0) return false;
 		if(row_ > (*this).row) return false;
@@ -258,11 +314,12 @@ public:
 		puts("-------------------------------------------");
 		for(int i = 0;i < (*this).row; i++){
 			for(int j = 0;j < (*this).column; j++){
-				cout << data_ptr[offset(i,j)] << " ";
-			}cout << endl;
+				std::cout << data_ptr[offset(i,j)] << " ";
+			}std::cout << std::endl;
 		}
 		puts("-------------------------------------------");
 	}
+
 	Dtype mean(){
 		Dtype ret = 0;
 		for(int i = 0;i < (*this).row; i++){
