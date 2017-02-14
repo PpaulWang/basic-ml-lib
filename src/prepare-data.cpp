@@ -7,8 +7,8 @@ using namespace std;
 const int MAX_INDEX = 100000;
 const int FEATURE_NUM = 200;
 
-int main(){
-	freopen("features.txt","r",stdin);
+int main(int argc,char** argv){
+	freopen(argv[1],"r",stdin);
 	int cnt[MAX_INDEX];
 	memset(cnt,0,sizeof(cnt));
 	int index=0;
@@ -34,8 +34,13 @@ int main(){
 			final_feature_indexs.push_back(i);
 		}
 	}
+	if(strstr(argv[1],"train")){
+		features.get_sub_in_columns(final_feature_indexs).get_sub_in_rows(final_indexs).save("inputs_train.matrix");
+		labels.get_sub_in_rows(final_indexs).save("labels_train.matrix");
+	}
+	else {
 
-	//features.show();
-	features.get_sub_in_columns(final_feature_indexs).get_sub_in_rows(final_indexs).save("inputs.matrix");
-	labels.get_sub_in_rows(final_indexs).save("labels.matrix");
+		features.get_sub_in_columns(final_feature_indexs).get_sub_in_rows(final_indexs).save("inputs_test.matrix");
+		labels.get_sub_in_rows(final_indexs).save("labels_test.matrix");
+	}
 }

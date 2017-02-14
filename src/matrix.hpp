@@ -83,8 +83,10 @@ public:
 
 	void operator = (const Matrix& source){
 
-		if(NULL != data_ptr)
+		if(NULL != data_ptr){
 			free(data_ptr);
+			memory_blocks_num--;
+		}
 		
 		memory_blocks_num++;
 

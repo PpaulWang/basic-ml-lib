@@ -98,6 +98,6 @@ int test(){
 }
 int main(int argv, char** argc){
 	test_model<double>(argv, argc);
-	cout<<wcq::memory_blocks_num<<endl;
+	cout<< "memory_blocks_num : "<<wcq::memory_blocks_num<<endl;
 	return 0;
 }
