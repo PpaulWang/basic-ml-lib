@@ -36,8 +36,8 @@ int main(int argc,char** argv){
 	int cnt[MAX_INDEX];
 	memset(cnt,0,sizeof(cnt));
 	int index=0;
-	Matrix<float> features(MAX_INDEX,FEATURE_NUM);
-	Matrix<float> labels(MAX_INDEX,1);
+	Matrix<double> features(MAX_INDEX,FEATURE_NUM);
+	Matrix<double> labels(MAX_INDEX,1);
 	vector<int> final_indexs;
 	
 	ifstream fin(argv[1]);

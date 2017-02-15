@@ -55,30 +55,23 @@ public:
 	}
 	void load(const std::string filename){
 		std::ifstream fin(filename.c_str());
-		fin>>(*this).row>>(*this).column;
 		if ((*this).data_ptr != NULL) {
 			delete[] data_ptr;
 			memory_blocks_num -- ;
-		}
-		data_ptr = new Dtype[(*this).row * (*this).column];
+		}	
 		memory_blocks_num ++ ;
-		for(int i = 0 ; i < (*this).row ; i++ ){
-			for(int j = 0 ; j < (*this).column ; j++ ){
-				fin>>(*this)[i][j];
-			}
-		}
+		fin.read((char *)&(*this).row,sizeof((*this).row));
+		fin.read((char *)&(*this).column,sizeof((*this).column));
+		data_ptr = new Dtype[(*this).row * (*this).column];
+		fin.read((char *)data_ptr,sizeof(Dtype)*(this->row)*(this->column));
 	}
 
 
 	void save(const std::string filename) const {
 		std::ofstream fout(filename.c_str());
-		fout<<(*this).row << " " << (*this).column << std::endl;
-		for(int i = 0 ; i < (*this).row ; i++ ){
-			for(int j = 0 ; j < (*this).column ; j++ ){
-				fout << (*this)[i][j] << " ";
-			}
-			fout << std::endl;
-		}
+		fout.write((char *)&(*this).row,sizeof((*this).row));
+		fout.write((char *)&(*this).column,sizeof((*this).column));
+		fout.write((char *)data_ptr,sizeof(Dtype)*(this->row)*(this->column));
 	}
 
 	void operator = (const Matrix& source){
