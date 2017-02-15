@@ -2,9 +2,55 @@
 #include <fstream>
 #include <cmath>
 #include "matrix.hpp"
-
+#include <algorithm>
 using namespace std;
 
+template <typename Dtype>
+class AUC{
+public:
+	AUC(){}
+	AUC(const Matrix<Dtype>& PROBS,const Matrix<Dtype>& LABELS){
+		pros = PROBS[0];
+		labels = LABELS[0];
+		N = PROBS.Row();
+
+		
+		std::vector<int> ranks = get_ranks();
+		long long PN = 0 ;
+		long long P_rank_sum = 0;
+		for (int i = 0;i < N ; i++ ){
+			if(0.5 < labels[i]) {
+				P_rank_sum += ranks[i];
+				PN++;
+			}
+		}
+		this->auc_ = (Dtype)(P_rank_sum - PN*(PN+1)/2)/(PN*(N-PN));
+	}
+	std::vector<int> get_ranks() const {
+		std::vector<pair<Dtype,int> > temp;
+		for(int i= 0 ;i< N ;i++){
+			temp.push_back(
+				make_pair(pros[i],i)
+			);
+		}
+		sort(temp.begin(),temp.end());
+		std::vector<int> ret(N);
+		for(int i=0;i<N;i++){
+			ret[ temp[i].second ] = i;
+		}
+		return ret;
+	}
+	Dtype auc() const {
+		return this->auc_;
+	}
+		
+private:
+	const Dtype* pros;
+	const Dtype* labels;
+	Dtype auc_;
+	int N ; 
+
+};
 
 template <typename Dtype>
 class LogisticRegression{
@@ -126,7 +172,7 @@ public:
 	}
 
 	Matrix<Dtype> predict(const Matrix<Dtype>& inputs){
-		return forward(inputs.T());
+		return forward(inputs.T()).T();
 		/*
 		Matrix<Dtype> model_inputs = inputs.T();
 		return forward(model_inputs);
