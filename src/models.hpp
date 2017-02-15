@@ -13,6 +13,7 @@ public:
 	LogisticRegression(std::string filename){
 		(*this).load_file(filename);
 	}
+	
 	LogisticRegression(int _input_nums, int _output_nums,Dtype _learning_rate)
 	:input_nums(_input_nums),output_nums(_output_nums),learning_rate(_learning_rate){
 		weights = Matrix<Dtype>(output_nums, input_nums ,0);
@@ -60,6 +61,57 @@ public:
 		return (error*error).mean();
 	}
 
+	Dtype get_auc(const Matrix<Dtype>& inputs,const Matrix<Dtype>& targets ){ 
+
+		Matrix<Dtype> model_inputs = inputs.T();
+
+		Matrix<Dtype> model_targets = targets.T();
+		
+		Matrix<Dtype> outputs = forward(model_inputs);
+		float last_fpr=1,ret=0;
+		for (float threshold = 0.0 ; threshold < 1.0 ; threshold += 0.001 ){
+			int TP = 0 , FP = 0 , FN = 0 , TN = 0;
+		
+			for ( int i = 0 ; i < outputs.Column() ; i++ ){
+				if (outputs[0][i] > threshold ){
+					if(targets[0][i] > 0.9) TP++;
+					else FP++;
+				}
+				else {
+					if(targets[0][i] > 0.9) FN++;
+					else TN++;
+				}
+			}
+			int N = FP + TN , P = FN + TP;
+			Dtype TPR = (Dtype) TP / P;
+			Dtype FPR = (Dtype) FP / N;
+			ret += (last_fpr - FPR) * TPR;
+			last_fpr = FPR;
+		}
+		return ret;
+	}
+	Dtype get_acc(const Matrix<Dtype>& inputs,const Matrix<Dtype>& targets , const Dtype threshold = 0.5 ){
+
+		Matrix<Dtype> model_inputs = inputs.T();
+
+		Matrix<Dtype> model_targets = targets.T();
+		
+		Matrix<Dtype> outputs = forward(model_inputs);
+		int TP = 0 , FP = 0 , FN = 0 , TN = 0;
+		
+		for ( int i = 0 ; i < outputs.Column() ; i++ ){
+			if (outputs[0][i] > threshold ){
+				if(targets[0][i] > 0.9) TP++;
+				else FP++;
+			}
+			else {
+				if(targets[0][i] > 0.9) FN++;
+				else TN++;
+			}
+		}
+		
+		return (Dtype)( TP + TN ) / ( TP + TN + FP + FN );
+	}
 	Dtype get_loss(const Matrix<Dtype>& inputs,const Matrix<Dtype>& targets){
 
 		Matrix<Dtype> model_inputs = inputs.T();
@@ -88,12 +140,15 @@ public:
 	}
 	void load_file(std::string filename){
 		std::ifstream fin(filename.c_str());
-		fin >> (*this).input_nums >> (*this).output_nums >> (*this).learning_rate;
+		fin >> (*this).input_nums >> (*this).output_nums ;
 		(*this).weights = Matrix<Dtype>(filename+".matrix");
+	}
+	void set_learning_rate(Dtype learning_rate){
+		(*this).learning_rate = learning_rate;
 	}
 	void save_file(std::string filename) const {
 		std::ofstream fout(filename.c_str());
-		fout << (*this).input_nums << " " << (*this).output_nums << " " << (*this).learning_rate <<std::endl;
+		fout << (*this).input_nums << " " << (*this).output_nums << std::endl;
 		fout << filename+".matrix" << std::endl;
 		(*this).weights.save(filename+".matrix");
 	}
